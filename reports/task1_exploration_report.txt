@@ -1,0 +1,97 @@
+================================================================================
+DATA EXPLORATION REPORT
+================================================================================
+
+DATASET OVERVIEW
+--------------------------------------------------------------------------------
+Total records: 43
+Total columns: 34
+Columns: record_id, record_type, category, pillar, indicator, indicator_code, indicator_direction, value_numeric, value_text, value_type, unit, observation_date, period_start, period_end, fiscal_year, gender, location, region, source_name, source_type, source_url, confidence, related_indicator, relationship_type, impact_direction, impact_magnitude, impact_estimate, lag_months, evidence_basis, comparable_country, collected_by, collection_date, original_text, notes
+
+RECORD COUNTS
+--------------------------------------------------------------------------------
+
+RECORD_TYPE:
+record_type
+observation    30
+event          10
+target          3
+Name: count, dtype: int64
+
+PILLAR:
+pillar
+ACCESS           16
+USAGE            11
+GENDER            5
+AFFORDABILITY     1
+Name: count, dtype: int64
+
+SOURCE_TYPE:
+source_type
+operator      15
+survey        10
+regulator      7
+research       4
+policy         3
+calculated     2
+news           2
+Name: count, dtype: int64
+
+CONFIDENCE:
+confidence
+high      40
+medium     3
+Name: count, dtype: int64
+
+TEMPORAL RANGE
+--------------------------------------------------------------------------------
+Date range: 2014-12-31 to 2030-12-31
+Min date: 2014-12-31
+Max date: 2030-12-31
+
+UNIQUE INDICATORS
+--------------------------------------------------------------------------------
+Total unique indicators: 29
+
+First 10 indicators:
+     indicator_code  ... record_count
+2        ACC_4G_COV  ...            2
+4         ACC_FAYDA  ...            4
+1    ACC_MM_ACCOUNT  ...            2
+3    ACC_MOBILE_PEN  ...            1
+0     ACC_OWNERSHIP  ...            7
+15  AFF_DATA_INCOME  ...            1
+24    EVT_CROSSOVER  ...            1
+26     EVT_ETHIOPAY  ...            1
+22        EVT_FAYDA  ...            1
+23    EVT_FX_REFORM  ...            1
+
+[10 rows x 4 columns]
+
+EVENTS CATALOG
+--------------------------------------------------------------------------------
+Total events: 10
+
+First 10 events:
+   observation_date        category pillar    source_name confidence record_id
+33       2021-05-17  product_launch    NaN  Ethio Telecom       high  EVT_0001
+41       2021-09-01          policy    NaN            NBE       high  EVT_0009
+34       2022-08-01    market_entry    NaN           News       high  EVT_0002
+35       2023-08-01  product_launch    NaN      Safaricom       high  EVT_0003
+36       2024-01-01  infrastructure    NaN           NIDP       high  EVT_0004
+37       2024-07-29          policy    NaN            NBE       high  EVT_0005
+38       2024-10-01       milestone    NaN      EthSwitch       high  EVT_0006
+39       2025-10-27     partnership    NaN      EthSwitch       high  EVT_0007
+42       2025-12-15         pricing    NaN           News       high  EVT_0010
+40       2025-12-18  infrastructure    NaN  NBE/EthSwitch       high  EVT_0008
+
+IMPACT LINKS SUMMARY
+--------------------------------------------------------------------------------
+total_links: 14
+columns: ['record_id', 'parent_id', 'record_type', 'category', 'pillar', 'indicator', 'indicator_code', 'indicator_direction', 'value_numeric', 'value_text', 'value_type', 'unit', 'observation_date', 'period_start', 'period_end', 'fiscal_year', 'gender', 'location', 'region', 'source_name', 'source_type', 'source_url', 'confidence', 'related_indicator', 'relationship_type', 'impact_direction', 'impact_magnitude', 'impact_estimate', 'lag_months', 'evidence_basis', 'comparable_country', 'collected_by', 'collection_date', 'original_text', 'notes']
+unique_events: 8
+unique_indicators: 9
+by_pillar: {'USAGE': 6, 'ACCESS': 4, 'AFFORDABILITY': 3, 'GENDER': 1}
+by_direction: {'increase': 12, 'decrease': 2}
+
+================================================================================
