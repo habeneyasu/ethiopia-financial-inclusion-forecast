@@ -58,6 +58,9 @@ The Global Findex Database is the world's most comprehensive demand-side survey 
 - Account ownership growth slowed to +3pp (2021-2024) despite 65M+ mobile money accounts
 - 10 cataloged events including Telebirr launch (2021), M-Pesa entry (2023), policy changes
 - 14 impact links modeling relationships between events and indicators
+- Event-indicator association matrix built with impact magnitudes and directions
+- Three functional forms implemented for effect representation (immediate, gradual, distributed)
+- Historical validation framework established for model refinement
 
 ## 🏗️ Project Architecture
 
@@ -70,7 +73,8 @@ Data Loading → Exploration → Enrichment → Analysis → Modeling → Foreca
 **Core Components:**
 - **Data Layer**: Unified schema handling (observations, events, impact links)
 - **Analysis Layer**: Exploratory data analysis and quality assessment
-- **Modeling Layer**: Event impact estimation and time series forecasting
+- **Modeling Layer**: Event impact estimation with association matrices and validation
+- **Forecasting Layer**: Time series forecasting with scenario analysis (upcoming)
 - **Visualization Layer**: Interactive dashboard for stakeholder engagement
 
 ## 📁 Repository Structure
@@ -86,10 +90,15 @@ ethiopia-fi-forecast/
 │   │   └── Additional Data Points Guide.xlsx
 │   └── processed/            # Analysis-ready data
 ├── notebooks/                 # Jupyter notebooks for analysis
+│   ├── 01_eda_analysis.ipynb
+│   └── 02_event_impact_modeling.ipynb
 ├── src/
 │   ├── utils/                 # Logger, config management
 │   ├── data/                   # DataLoader, DataExplorer, DataEnricher
-│   └── tasks/                  # Task executors
+│   ├── analysis/               # EDA analyzer and visualizer
+│   ├── models/                 # Event impact modeler, association matrix builder
+│   ├── tasks/                  # Task executors
+│   └── reports/                # Report generator
 ├── dashboard/
 │   └── app.py                 # Interactive Streamlit dashboard
 ├── tests/                      # Unit tests
@@ -121,6 +130,12 @@ python -m src.tasks.task1_data_exploration
 
 # Inspect data quality
 python inspect_data_quality.py
+
+# Run Exploratory Data Analysis
+python -m src.tasks.task2_eda
+
+# Run Event Impact Modeling
+python -m src.tasks.task3_event_impact
 ```
 
 ## 🚀 Methodology & Features
@@ -201,14 +216,74 @@ visualizer.plot_access_trajectory(show_events=True)
 visualizer.plot_correlation_heatmap()
 ```
 
-### Event Impact Modeling
+### Event Impact Modeling ✅
 
-**Objective**: Model how events affect financial inclusion indicators.
+**Objective**: Model how events (policies, product launches, infrastructure investments) affect financial inclusion indicators.
+
+**Key Features:**
+- Impact data loading and joining with events
+- Event-indicator association matrix construction
+- Three functional forms for effect representation (immediate, gradual, distributed)
+- Multiple event effect combination methods (additive, multiplicative, max)
+- Historical data validation against known impacts
+- Comparable country evidence integration
+- Impact estimation refinement based on validation
+- Comprehensive methodology documentation
+
+**Usage:**
+```bash
+# Run event impact modeling pipeline
+python -m src.tasks.task3_event_impact
+
+# Interactive analysis in Jupyter
+jupyter notebook notebooks/02_event_impact_modeling.ipynb
+```
+
+```python
+from src.models import EventImpactModeler, AssociationMatrixBuilder, ComparableEvidence
+
+# Initialize modeler
+impact_modeler = EventImpactModeler()
+matrix_builder = AssociationMatrixBuilder(impact_modeler)
+
+# Load impact data
+impact_data = impact_modeler.load_impact_data()
+
+# Build association matrix
+association_matrix = matrix_builder.build_association_matrix()
+
+# Visualize matrix
+matrix_builder.visualize_matrix(association_matrix)
+
+# Validate against historical data
+validation_result = impact_modeler.validate_against_historical_data(
+    indicator_code="ACC_MM_ACCOUNT",
+    event_id="EVT_0001",
+    observed_change=4.75,
+    observed_period=("2021-05-01", "2024-12-31")
+)
+
+# Represent event effect over time
+effect_series = impact_modeler.represent_event_effect_over_time(
+    event_date=pd.Timestamp("2021-05-17"),
+    impact_magnitude=5.0,
+    lag_months=6,
+    effect_type="gradual"
+)
+
+# Combine multiple event effects
+combined = impact_modeler.combine_multiple_event_effects(
+    [effect1, effect2],
+    combination_method="additive"
+)
+```
 
 **Key Deliverables:**
-- Event-indicator association matrix
-- Impact estimation methodology
-- Validation against historical data
+- Event-indicator association matrix (CSV + heatmap visualization)
+- Impact summary showing which events affect which indicators
+- Validation results comparing predicted vs. observed impacts
+- Methodology documentation with assumptions and limitations
+- Comparable country evidence database
 
 ### Forecasting Access and Usage
 
@@ -228,7 +303,26 @@ visualizer.plot_correlation_heatmap()
 - Interactive visualizations
 - Forecast displays with uncertainty bounds
 
-## 📊 Dashboard
+## 📊 Reports & Dashboard
+
+### Policy Report
+
+Generate comprehensive policy-focused report for Tasks 1 & 2:
+
+```bash
+python generate_policy_report.py
+```
+
+**Report includes:**
+- Executive summary with key highlights
+- 4 data tables (Dataset composition, Pillar breakdown, Access trajectory, Events)
+- 4 visualizations (Access trajectory, Usage trends, Event timeline, Correlation matrix)
+- 5 policy recommendations
+- Maximum 8 pages, designed for policy makers
+
+Report saved to `reports/policy_report.md` with figures in `reports/figures/`.
+
+### Interactive Dashboard
 
 *Dashboard will be available after Interactive Dashboard development*
 

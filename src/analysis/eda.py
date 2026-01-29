@@ -276,11 +276,23 @@ class EDAAnalyzer:
         date_col = "observation_date" if "observation_date" in events.columns else "event_date"
         if date_col in events.columns:
             events["event_date"] = pd.to_datetime(events[date_col], errors="coerce")
+            # Drop rows where date conversion failed
+            events = events[events["event_date"].notna()].copy()
             events = events.sort_values("event_date")
         else:
             return pd.DataFrame()
 
-        return events[["event_date", "category", "source_name", "record_id", "description"]].copy()
+        if events.empty:
+            return pd.DataFrame()
+
+        # Select available columns
+        available_cols = ["event_date", "category", "source_name", "record_id"]
+        if "description" in events.columns:
+            available_cols.append("description")
+        if "notes" in events.columns:
+            available_cols.append("notes")
+
+        return events[[col for col in available_cols if col in events.columns]].copy()
 
     def analyze_correlations(self, indicators: Optional[List[str]] = None) -> pd.DataFrame:
         """
