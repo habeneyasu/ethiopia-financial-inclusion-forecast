@@ -20,7 +20,18 @@ except ImportError:
     logger = get_logger(__name__)
     logger.warning("Plotly not available. Install with: pip install plotly")
 
+# Optional plotly imports
+try:
+    import plotly.graph_objects as go
+    import plotly.express as px
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+
 logger = get_logger(__name__)
+
+if not PLOTLY_AVAILABLE:
+    logger.warning("Plotly not available. Install with: pip install plotly")
 
 # Set style
 sns.set_style("whitegrid")
@@ -81,13 +92,25 @@ class DataVisualizer:
         if show_events:
             events = self.eda_analyzer.get_event_timeline()
             if not events.empty:
-                for _, event in events.iterrows():
-                    fig.add_vline(
-                        x=event["event_date"],
-                        line_dash="dash",
-                        line_color="gray",
-                        annotation_text=event.get("category", "Event")
-                    )
+                # Extract years from event dates before iterating
+                events_with_years = events.copy()
+                events_with_years["event_year"] = events_with_years["event_date"].apply(
+                    lambda x: int(pd.to_datetime(x).year) if pd.notna(x) else None
+                )
+                events_with_years = events_with_years[events_with_years["event_year"].notna()]
+                
+                for _, event in events_with_years.iterrows():
+                    try:
+                        event_year = int(event["event_year"])
+                        fig.add_vline(
+                            x=event_year,
+                            line_dash="dash",
+                            line_color="gray",
+                            annotation_text=str(event.get("category", "Event"))
+                        )
+                    except Exception as e:
+                        self.logger.warning(f"Could not add event line: {e}")
+                        continue
 
         fig.update_layout(
             title="Ethiopia Account Ownership Trajectory (2011-2024)",
