@@ -116,16 +116,16 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run Task 1: Data Exploration
+# Run Data Exploration & Enrichment
 python -m src.tasks.task1_data_exploration
 
 # Inspect data quality
 python inspect_data_quality.py
 ```
 
-## 🚀 Methodology & Task Overview
+## 🚀 Methodology & Features
 
-### Task 1: Data Exploration & Enrichment ✅
+### Data Exploration & Enrichment ✅
 
 **Objective**: Understand the starter dataset and enrich it with additional data useful for forecasting.
 
@@ -159,7 +159,7 @@ enricher.add_observation(
 )
 ```
 
-### Task 2: Exploratory Data Analysis
+### Exploratory Data Analysis
 
 **Objective**: Analyze patterns and factors influencing financial inclusion in Ethiopia.
 
@@ -170,7 +170,7 @@ enricher.add_observation(
 - Event timeline visualization
 - Correlation analysis
 
-### Task 3: Event Impact Modeling
+### Event Impact Modeling
 
 **Objective**: Model how events affect financial inclusion indicators.
 
@@ -179,7 +179,7 @@ enricher.add_observation(
 - Impact estimation methodology
 - Validation against historical data
 
-### Task 4: Forecasting Access and Usage
+### Forecasting Access and Usage
 
 **Objective**: Forecast Account Ownership and Digital Payment Usage for 2025-2027.
 
@@ -188,7 +188,7 @@ enricher.add_observation(
 - Scenario analysis (optimistic, base, pessimistic)
 - Written interpretation
 
-### Task 5: Dashboard Development
+### Interactive Dashboard
 
 **Objective**: Create interactive dashboard for stakeholder exploration.
 
@@ -199,10 +199,10 @@ enricher.add_observation(
 
 ## 📊 Dashboard
 
-*Dashboard will be available after Task 5 completion*
+*Dashboard will be available after Interactive Dashboard development*
 
 ```bash
-# Run dashboard (after Task 5)
+# Run dashboard
 streamlit run dashboard/app.py
 ```
 
