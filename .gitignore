@@ -34,7 +34,8 @@ venv.bak/
 # Jupyter Notebook
 .ipynb_checkpoints
 *.ipynb_checkpoints
-*.ipynb
+# Note: Notebooks are tracked for this project
+# *.ipynb
 
 # IDE
 .vscode/
@@ -80,6 +81,9 @@ reports/figures/*
 !reports/figures/.gitkeep
 reports/*.html
 reports/*.pdf
+# Keep markdown and text reports
+!reports/*.md
+!reports/*.txt
 
 # Logs
 logs/
@@ -163,3 +167,17 @@ dmypy.json
 *~
 .~lock.*
 *.lock
+
+# Project-specific files (keep these tracked)
+# Uncomment if you want to ignore these:
+# data_enrichment_log.md
+# generate_policy_report.py
+# inspect_data_quality.py
+# pytest.ini
+
+# Project-specific files (keep these tracked)
+# Uncomment if you want to ignore these utility scripts:
+# data_enrichment_log.md
+# generate_policy_report.py
+# inspect_data_quality.py
+# pytest.ini

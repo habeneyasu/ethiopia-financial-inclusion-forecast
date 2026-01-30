@@ -178,15 +178,21 @@ class ForecastModeler:
 
         if model_type == "linear":
             y_forecast = model.predict(X_forecast)
+            # Ensure y_forecast is a numpy array
+            y_forecast = np.array(y_forecast).flatten()
             # Calculate prediction intervals
             residuals = y_hist - model.predict(X_hist)
             std_error = np.std(residuals)
             t_critical = stats.t.ppf((1 + confidence_level) / 2, len(series) - 2)
-            se_pred = std_error * np.sqrt(1 + 1/len(series) + (X_forecast - X_hist.mean())**2 / np.sum((X_hist - X_hist.mean())**2))
+            # Ensure X_hist.mean() returns a scalar
+            X_hist_mean = float(X_hist.mean())
+            se_pred = std_error * np.sqrt(1 + 1/len(series) + (X_forecast - X_hist_mean)**2 / np.sum((X_hist - X_hist_mean)**2))
             margin = t_critical * se_pred.flatten()
         else:  # log model
             y_forecast_log = model.predict(X_forecast)
             y_forecast = np.exp(y_forecast_log) - 1
+            # Ensure y_forecast is a numpy array
+            y_forecast = np.array(y_forecast).flatten()
             # Simplified confidence intervals for log model
             residuals = np.log(y_hist + 1) - model.predict(X_hist)
             std_error = np.std(residuals)
@@ -194,6 +200,9 @@ class ForecastModeler:
             margin = t_critical * std_error * np.ones(len(forecast_years))
             margin = y_forecast * (np.exp(margin) - 1)  # Approximate
 
+        # Ensure margin is a numpy array
+        margin = np.array(margin).flatten()
+        
         forecasts = pd.DataFrame({
             "year": forecast_years,
             "forecast": y_forecast,
@@ -260,6 +269,18 @@ class ForecastModeler:
             impact_magnitude = link.get("impact_magnitude", 0.0)
             lag_months = link.get("lag_months", 0)
 
+            # Ensure impact_magnitude is numeric
+            try:
+                impact_magnitude = float(impact_magnitude) if impact_magnitude is not None else 0.0
+            except (ValueError, TypeError):
+                impact_magnitude = 0.0
+
+            # Ensure lag_months is numeric
+            try:
+                lag_months = int(lag_months) if lag_months is not None else 0
+            except (ValueError, TypeError):
+                lag_months = 0
+
             # Apply effect to forecast years after event
             for idx, row in forecast_with_events.iterrows():
                 forecast_year = row["year"]
@@ -302,23 +323,49 @@ class ForecastModeler:
         """
         scenarios = {}
 
+        # Create a copy and ensure numeric types BEFORE any operations
+        base_forecast_clean = base_forecast.copy()
+        numeric_cols = ["forecast", "lower_bound", "upper_bound"]
+        for col in numeric_cols:
+            if col in base_forecast_clean.columns:
+                base_forecast_clean[col] = pd.to_numeric(base_forecast_clean[col], errors="coerce")
+
         # Base scenario
-        scenarios["base"] = base_forecast.copy()
+        scenarios["base"] = base_forecast_clean.copy()
+
+        # Ensure we're working with numeric Series (use cleaned version)
+        forecast_series = pd.to_numeric(base_forecast_clean["forecast"], errors="coerce")
+        upper_series = None
+        lower_series = None
+        
+        if "upper_bound" in base_forecast_clean.columns:
+            upper_series = pd.to_numeric(base_forecast_clean["upper_bound"], errors="coerce")
+        
+        if "lower_bound" in base_forecast_clean.columns:
+            lower_series = pd.to_numeric(base_forecast_clean["lower_bound"], errors="coerce")
 
         # Optimistic scenario
-        optimistic = base_forecast.copy()
-        optimistic["forecast"] = base_forecast["forecast"] * optimistic_multiplier
-        optimistic["forecast"] = optimistic["forecast"].clip(lower=0, upper=100)
-        optimistic["upper_bound"] = base_forecast["upper_bound"] * optimistic_multiplier
-        optimistic["lower_bound"] = base_forecast["lower_bound"] * optimistic_multiplier
+        optimistic = base_forecast_clean.copy()
+        optimistic["forecast"] = (forecast_series * optimistic_multiplier).clip(lower=0, upper=100)
+        
+        if upper_series is not None:
+            optimistic["upper_bound"] = (upper_series * optimistic_multiplier).clip(lower=0, upper=100)
+        
+        if lower_series is not None:
+            optimistic["lower_bound"] = (lower_series * optimistic_multiplier).clip(lower=0, upper=100)
+        
         scenarios["optimistic"] = optimistic
 
         # Pessimistic scenario
-        pessimistic = base_forecast.copy()
-        pessimistic["forecast"] = base_forecast["forecast"] * pessimistic_multiplier
-        pessimistic["forecast"] = pessimistic["forecast"].clip(lower=0, upper=100)
-        pessimistic["upper_bound"] = base_forecast["upper_bound"] * pessimistic_multiplier
-        pessimistic["lower_bound"] = base_forecast["lower_bound"] * pessimistic_multiplier
+        pessimistic = base_forecast_clean.copy()
+        pessimistic["forecast"] = (forecast_series * pessimistic_multiplier).clip(lower=0, upper=100)
+        
+        if upper_series is not None:
+            pessimistic["upper_bound"] = (upper_series * pessimistic_multiplier).clip(lower=0, upper=100)
+        
+        if lower_series is not None:
+            pessimistic["lower_bound"] = (lower_series * pessimistic_multiplier).clip(lower=0, upper=100)
+        
         scenarios["pessimistic"] = pessimistic
 
         return scenarios
@@ -408,12 +455,17 @@ class ForecastModeler:
         """
         forecast_df = forecast_results["scenarios"][scenario].copy()
 
+        # Ensure numeric types
+        forecast_vals = pd.to_numeric(forecast_df["forecast"], errors="coerce")
+        lower_vals = pd.to_numeric(forecast_df["lower_bound"], errors="coerce")
+        upper_vals = pd.to_numeric(forecast_df["upper_bound"], errors="coerce")
+
         table = pd.DataFrame({
             "Year": forecast_df["year"],
-            "Forecast (%)": forecast_df["forecast"].round(1),
-            "Lower Bound (%)": forecast_df["lower_bound"].round(1),
-            "Upper Bound (%)": forecast_df["upper_bound"].round(1),
-            "Range": (forecast_df["upper_bound"] - forecast_df["lower_bound"]).round(1)
+            "Forecast (%)": forecast_vals.round(1),
+            "Lower Bound (%)": lower_vals.round(1),
+            "Upper Bound (%)": upper_vals.round(1),
+            "Range": (upper_vals - lower_vals).round(1)
         })
 
         return table
