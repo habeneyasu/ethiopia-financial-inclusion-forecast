@@ -11,10 +11,14 @@ kaleido>=0.2.1  # For plotly static image export
 
 # Machine learning
 scikit-learn>=1.2.0
+scipy>=1.10.0
 
 # Jupyter notebooks
 jupyter>=1.0.0
 notebook>=6.5.0
+
+# Dashboard
+streamlit>=1.28.0
 
 # Testing
 pytest>=7.2.0
