@@ -285,14 +285,66 @@ combined = impact_modeler.combine_multiple_event_effects(
 - Methodology documentation with assumptions and limitations
 - Comparable country evidence database
 
-### Forecasting Access and Usage
+### Forecasting Access and Usage ✅
 
-**Objective**: Forecast Account Ownership and Digital Payment Usage for 2025-2027.
+**Objective**: Forecast Account Ownership (Access) and Digital Payment Usage for 2025-2027.
+
+**Key Features:**
+- Trend regression models (linear/log-linear)
+- Event-augmented forecasts incorporating Task 3 impact modeling
+- Scenario analysis (optimistic, base, pessimistic)
+- Confidence intervals (95% prediction intervals)
+- Uncertainty quantification and explicit limitation acknowledgment
+- Comprehensive forecast tables and visualizations
+
+**Usage:**
+```bash
+# Run forecasting pipeline
+python -m src.tasks.task4_forecasting
+
+# Interactive analysis in Jupyter
+jupyter notebook notebooks/03_forecasting.ipynb
+```
+
+```python
+from src.models import ForecastModeler
+
+# Initialize forecaster
+forecast_modeler = ForecastModeler()
+
+# Forecast Account Ownership
+access_forecast = forecast_modeler.forecast_indicator(
+    indicator_code="ACC_OWNERSHIP",
+    pillar="ACCESS",
+    forecast_years=[2025, 2026, 2027],
+    include_events=True,
+    model_type="linear",
+    confidence_level=0.95
+)
+
+# Generate forecast table
+table = forecast_modeler.generate_forecast_table(access_forecast, scenario="base")
+
+# Access scenarios
+scenarios = access_forecast["scenarios"]  # optimistic, base, pessimistic
+```
+
+**Forecast Targets:**
+1. **Account Ownership Rate (Access)**: % of adults with account at financial institution or mobile money
+2. **Digital Payment Usage**: % of adults who made or received digital payment
+
+**Approach:**
+Given sparse data (5 Findex points over 13 years), the system employs:
+- **Trend Regression**: Linear trend continuation based on historical data
+- **Event-Augmented Model**: Baseline trend + event effects from Task 3
+- **Scenario Analysis**: Optimistic (×1.2), base, pessimistic (×0.8) scenarios
 
 **Key Deliverables:**
-- Forecast models with confidence intervals
-- Scenario analysis (optimistic, base, pessimistic)
-- Written interpretation
+- Forecast tables with confidence intervals for 2025-2027
+- Scenario comparison visualizations
+- Written interpretation of predictions and uncertainties
+- Methodology documentation
+- Explicit acknowledgment of limitations
 
 ### Interactive Dashboard
 
