@@ -168,16 +168,3 @@ dmypy.json
 .~lock.*
 *.lock
 
-# Project-specific files (keep these tracked)
-# Uncomment if you want to ignore these:
-# data_enrichment_log.md
-# generate_policy_report.py
-# inspect_data_quality.py
-# pytest.ini
-
-# Project-specific files (keep these tracked)
-# Uncomment if you want to ignore these utility scripts:
-# data_enrichment_log.md
-# generate_policy_report.py
-# inspect_data_quality.py
-# pytest.ini
