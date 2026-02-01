@@ -323,3 +323,238 @@ class DataEnricher:
         """Clear the enrichment log"""
         self._enrichment_log.clear()
         self.logger.info("Enrichment log cleared")
+
+    def update_enrichment_log_markdown(
+        self,
+        log_path: Optional[Path] = None
+    ) -> str:
+        """
+        Update the data_enrichment_log.md file with all enrichments
+
+        Args:
+            log_path: Path to enrichment log markdown file
+
+        Returns:
+            Path to updated log file
+        """
+        if log_path is None:
+            log_path = config.project_root / "data_enrichment_log.md"
+
+        self.logger.info(f"Updating enrichment log at {log_path}")
+
+        # Count enrichments
+        observations = [e for e in self._enrichment_log if e["type"] == "observation"]
+        events = [e for e in self._enrichment_log if e["type"] == "event"]
+        impact_links = [e for e in self._enrichment_log if e["type"] == "impact_link"]
+
+        # Read existing log if it exists
+        existing_content = ""
+        if log_path.exists():
+            with open(log_path, "r", encoding="utf-8") as f:
+                existing_content = f.read()
+
+        # Generate new content
+        lines = [
+            "# Data Enrichment Log",
+            "",
+            "This document tracks all additions and modifications made to the Ethiopia Financial Inclusion dataset.",
+            "",
+            "## Enrichment Summary",
+            "",
+            f"- **Total Enrichments**: {len(self._enrichment_log)}",
+            f"- **Observations Added**: {len(observations)}",
+            f"- **Events Added**: {len(events)}",
+            f"- **Impact Links Added**: {len(impact_links)}",
+            f"- **Last Updated**: {datetime.now().strftime('%Y-%m-%d')}",
+            "",
+            "---",
+            "",
+        ]
+
+        # Add observations
+        if observations:
+            lines.extend([
+                "## New Observations",
+                "",
+            ])
+            for idx, entry in enumerate(observations, 1):
+                data = entry["data"]
+                lines.extend([
+                    f"### Observation #{idx}",
+                    "",
+                    f"- **Indicator Code**: {data.get('indicator_code', 'N/A')}",
+                    f"- **Indicator**: {data.get('indicator', 'N/A')}",
+                    f"- **Pillar**: {data.get('pillar', 'N/A')}",
+                    f"- **Value**: {data.get('value_numeric', 'N/A')}",
+                    f"- **Date**: {data.get('observation_date', 'N/A')}",
+                    f"- **Source**: {data.get('source_name', 'N/A')}",
+                    f"- **Source URL**: {data.get('source_url', 'N/A')}",
+                    f"- **Confidence**: {data.get('confidence', 'N/A')}",
+                    f"- **Collected By**: {data.get('collected_by', 'N/A')}",
+                    f"- **Collection Date**: {data.get('collection_date', 'N/A')}",
+                    f"- **Original Text**: {data.get('original_text', 'N/A')}",
+                    f"- **Notes**: {data.get('notes', 'N/A')}",
+                    "",
+                ])
+        else:
+            lines.extend([
+                "## New Observations",
+                "",
+                "*No observations added yet.*",
+                "",
+            ])
+
+        # Add events
+        if events:
+            lines.extend([
+                "---",
+                "",
+                "## New Events",
+                "",
+            ])
+            for idx, entry in enumerate(events, 1):
+                data = entry["data"]
+                lines.extend([
+                    f"### Event #{idx}",
+                    "",
+                    f"- **Category**: {data.get('category', 'N/A')}",
+                    f"- **Date**: {data.get('event_date', data.get('observation_date', 'N/A'))}",
+                    f"- **Description**: {data.get('description', 'N/A')}",
+                    f"- **Source**: {data.get('source_name', 'N/A')}",
+                    f"- **Source URL**: {data.get('source_url', 'N/A')}",
+                    f"- **Confidence**: {data.get('confidence', 'N/A')}",
+                    f"- **Collected By**: {data.get('collected_by', 'N/A')}",
+                    f"- **Collection Date**: {data.get('collection_date', 'N/A')}",
+                    f"- **Original Text**: {data.get('original_text', 'N/A')}",
+                    f"- **Notes**: {data.get('notes', 'N/A')}",
+                    "",
+                ])
+        else:
+            lines.extend([
+                "---",
+                "",
+                "## New Events",
+                "",
+                "*No events added yet.*",
+                "",
+            ])
+
+        # Add impact links
+        if impact_links:
+            lines.extend([
+                "---",
+                "",
+                "## New Impact Links",
+                "",
+            ])
+            for idx, entry in enumerate(impact_links, 1):
+                data = entry["data"]
+                lines.extend([
+                    f"### Impact Link #{idx}",
+                    "",
+                    f"- **Parent Event ID**: {data.get('parent_id', 'N/A')}",
+                    f"- **Pillar**: {data.get('pillar', 'N/A')}",
+                    f"- **Related Indicator**: {data.get('related_indicator', 'N/A')}",
+                    f"- **Impact Direction**: {data.get('impact_direction', 'N/A')}",
+                    f"- **Impact Magnitude**: {data.get('impact_magnitude', 'N/A')}",
+                    f"- **Lag Months**: {data.get('lag_months', 'N/A')}",
+                    f"- **Evidence Basis**: {data.get('evidence_basis', 'N/A')}",
+                    f"- **Confidence**: {data.get('confidence', 'N/A')}",
+                    f"- **Collected By**: {data.get('collected_by', 'N/A')}",
+                    f"- **Collection Date**: {data.get('collection_date', 'N/A')}",
+                    f"- **Notes**: {data.get('notes', 'N/A')}",
+                    "",
+                ])
+        else:
+            lines.extend([
+                "---",
+                "",
+                "## New Impact Links",
+                "",
+                "*No impact links added yet.*",
+                "",
+            ])
+
+        # Add template sections if no enrichments
+        if not self._enrichment_log:
+            lines.extend([
+                "---",
+                "",
+                "## Observation Template",
+                "",
+                "```markdown",
+                "### Observation #[NUMBER]",
+                "",
+                "- **Indicator Code**: [CODE]",
+                "- **Indicator**: [NAME]",
+                "- **Pillar**: [Access/Usage]",
+                "- **Value**: [NUMERIC_VALUE]",
+                "- **Date**: [YYYY-MM-DD]",
+                "- **Source**: [SOURCE_NAME]",
+                "- **Source URL**: [URL]",
+                "- **Confidence**: [high/medium/low]",
+                "- **Collected By**: [NAME]",
+                "- **Collection Date**: [YYYY-MM-DD]",
+                "- **Original Text**: [QUOTE OR FIGURE FROM SOURCE]",
+                "- **Notes**: [WHY THIS DATA IS USEFUL]",
+                "```",
+                "",
+                "---",
+                "",
+                "## Event Template",
+                "",
+                "```markdown",
+                "### Event #[NUMBER]",
+                "",
+                "- **Category**: [policy/product_launch/infrastructure/etc]",
+                "- **Date**: [YYYY-MM-DD]",
+                "- **Description**: [EVENT DESCRIPTION]",
+                "- **Source**: [SOURCE_NAME]",
+                "- **Source URL**: [URL]",
+                "- **Confidence**: [high/medium/low]",
+                "- **Collected By**: [NAME]",
+                "- **Collection Date**: [YYYY-MM-DD]",
+                "- **Original Text**: [QUOTE OR FIGURE FROM SOURCE]",
+                "- **Notes**: [WHY THIS EVENT IS RELEVANT]",
+                "```",
+                "",
+                "---",
+                "",
+                "## Impact Link Template",
+                "",
+                "```markdown",
+                "### Impact Link #[NUMBER]",
+                "",
+                "- **Parent Event ID**: [EVENT_ID]",
+                "- **Pillar**: [Access/Usage]",
+                "- **Related Indicator**: [INDICATOR_CODE]",
+                "- **Impact Direction**: [positive/negative]",
+                "- **Impact Magnitude**: [VALUE IF AVAILABLE]",
+                "- **Lag Months**: [NUMBER]",
+                "- **Evidence Basis**: [DESCRIPTION]",
+                "- **Confidence**: [high/medium/low]",
+                "- **Collected By**: [NAME]",
+                "- **Collection Date**: [YYYY-MM-DD]",
+                "- **Notes**: [RELATIONSHIP RATIONALE]",
+                "```",
+                "",
+            ])
+
+        lines.extend([
+            "---",
+            "",
+            "## Notes",
+            "",
+            "- All enrichments should follow the schema defined in the project documentation",
+            "- Confidence levels: **high** (verified from authoritative source), **medium** (reliable but needs verification), **low** (preliminary or estimated)",
+            "- Always include source URLs and original text for traceability",
+            "- Document why each addition is useful for forecasting financial inclusion",
+        ])
+
+        # Write to file
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+
+        self.logger.info(f"Enrichment log updated at {log_path}")
+        return str(log_path)

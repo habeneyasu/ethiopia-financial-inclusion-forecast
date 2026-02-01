@@ -89,11 +89,28 @@ reports/*.pdf
 logs/
 *.log
 *.log.*
+notebooks/logs/
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.local
 .env.*.local
+*.env
+secrets.json
+secrets.yaml
+secrets.yml
+config.local.json
+config.local.yaml
+config.local.yml
+*.key
+*.pem
+*.cert
+*.crt
+*.p12
+*.pfx
+credentials.json
+credentials.yaml
+credentials.yml
 
 # Testing
 .coverage
