@@ -67,9 +67,14 @@ class EventImpactModeler:
 
         # Join impact_links with events
         if not impact_links.empty and not events.empty and "parent_id" in impact_links.columns:
+            # Select available columns from events
+            event_cols = ["record_id", "category", "observation_date", "source_name"]
+            if "description" in events.columns:
+                event_cols.append("description")
+            
             # Join on parent_id = record_id
             joined_data = impact_links.merge(
-                events[["record_id", "category", "observation_date", "source_name", "description"]],
+                events[event_cols],
                 left_on="parent_id",
                 right_on="record_id",
                 how="left",

@@ -106,11 +106,71 @@ class DataExplorer:
 
         if "source_type" in self._unified_data.columns:
             counts["source_type"] = self._unified_data["source_type"].value_counts()
+        elif "source_name" in self._unified_data.columns:
+            # Fallback to source_name if source_type not available
+            counts["source_name"] = self._unified_data["source_name"].value_counts()
 
         if "confidence" in self._unified_data.columns:
             counts["confidence"] = self._unified_data["confidence"].value_counts()
 
         return counts
+
+    def get_profiling_report(self) -> Dict[str, pd.DataFrame]:
+        """
+        Generate comprehensive profiling report with cross-tabulations
+
+        Returns:
+            Dictionary with profiling DataFrames
+        """
+        if self._unified_data is None or self._unified_data.empty:
+            self.load_all_data()
+
+        if self._unified_data.empty:
+            return {}
+
+        self.logger.info("Generating profiling report...")
+
+        profiling = {}
+
+        # Cross-tabulation: record_type x pillar
+        if "record_type" in self._unified_data.columns and "pillar" in self._unified_data.columns:
+            profiling["record_type_pillar"] = pd.crosstab(
+                self._unified_data["record_type"],
+                self._unified_data["pillar"],
+                margins=True
+            )
+
+        # Cross-tabulation: record_type x confidence
+        if "record_type" in self._unified_data.columns and "confidence" in self._unified_data.columns:
+            profiling["record_type_confidence"] = pd.crosstab(
+                self._unified_data["record_type"],
+                self._unified_data["confidence"],
+                margins=True
+            )
+
+        # Cross-tabulation: pillar x confidence
+        if "pillar" in self._unified_data.columns and "confidence" in self._unified_data.columns:
+            profiling["pillar_confidence"] = pd.crosstab(
+                self._unified_data["pillar"],
+                self._unified_data["confidence"],
+                margins=True
+            )
+
+        # Cross-tabulation: record_type x source_type (if available)
+        if "record_type" in self._unified_data.columns:
+            if "source_type" in self._unified_data.columns:
+                profiling["record_type_source_type"] = pd.crosstab(
+                    self._unified_data["record_type"],
+                    self._unified_data["source_type"],
+                    margins=True
+                )
+            elif "source_name" in self._unified_data.columns:
+                # Top 10 sources by record type
+                source_counts = self._unified_data.groupby(["record_type", "source_name"]).size().reset_index(name="count")
+                top_sources = source_counts.nlargest(10, "count")
+                profiling["record_type_top_sources"] = top_sources
+
+        return profiling
 
     def get_temporal_range(self) -> Dict[str, Optional[str]]:
         """
