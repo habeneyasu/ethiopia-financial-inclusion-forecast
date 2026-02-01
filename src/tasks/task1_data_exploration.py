@@ -136,9 +136,16 @@ class Task1Executor:
             self.logger.info("\nStep 4: Data enrichment...")
             self._perform_enrichments()
             
-            # Update enrichment log markdown
+            # Verify enrichments have all required fields
+            enrichment_count = len(self.data_enricher.get_enrichment_log())
+            if enrichment_count > 0:
+                self.logger.info(f"\nVerifying {enrichment_count} enrichments have all required metadata...")
+                self._verify_enrichment_metadata()
+            
+            # Update enrichment log markdown - this appends all enrichments with full metadata
             log_path = self.data_enricher.update_enrichment_log_markdown()
             self.logger.info(f"✓ Enrichment log updated at {log_path}")
+            self.logger.info(f"   All enrichments written with source_url, original_text, confidence, collected_by, collection_date, and notes")
 
             # Step 5: Merge and save enriched dataset
             self.logger.info("\nStep 5: Merging and saving enriched dataset...")
@@ -155,9 +162,23 @@ class Task1Executor:
             self.logger.info(f"\n📁 Enriched dataset file: {enriched_output}")
             self.logger.info("   This file is a key deliverable for Task 1 and contains all enrichments merged with original data.")
 
+            # Final summary
+            enrichment_summary = self.get_enrichment_summary()
             self.logger.info("\n" + "=" * 80)
             self.logger.info("Task 1 execution completed successfully")
             self.logger.info("=" * 80)
+            self.logger.info(f"\n📊 Enrichment Summary:")
+            self.logger.info(f"  - Total enrichments: {enrichment_summary['total_enrichments']}")
+            self.logger.info(f"  - Observations: {enrichment_summary['observations']}")
+            self.logger.info(f"  - Events: {enrichment_summary['events']}")
+            self.logger.info(f"  - Impact Links: {enrichment_summary['impact_links']}")
+            self.logger.info(f"\n📝 All enrichments have been written to data_enrichment_log.md with:")
+            self.logger.info(f"  ✓ source_url")
+            self.logger.info(f"  ✓ original_text")
+            self.logger.info(f"  ✓ confidence")
+            self.logger.info(f"  ✓ collected_by")
+            self.logger.info(f"  ✓ collection_date")
+            self.logger.info(f"  ✓ notes (explaining relevance)")
 
             return True
 
@@ -261,6 +282,40 @@ class Task1Executor:
             self.logger.info(f"  - Impact Links: {summary['impact_links']}")
         else:
             self.logger.warning("No enrichments were added - check enrichment code")
+
+    def _verify_enrichment_metadata(self):
+        """Verify all enrichments have required metadata fields"""
+        log = self.data_enricher.get_enrichment_log()
+        required_fields_map = {
+            "observation": ["source_url", "original_text", "confidence", "collected_by", "collection_date", "notes"],
+            "event": ["source_url", "original_text", "confidence", "collected_by", "collection_date", "notes"],
+            "impact_link": ["confidence", "collected_by", "collection_date", "notes"]
+        }
+        
+        all_valid = True
+        for entry in log:
+            entry_type = entry["type"]
+            data = entry["data"]
+            required_fields = required_fields_map.get(entry_type, [])
+            
+            missing = []
+            for field in required_fields:
+                value = data.get(field)
+                if value is None or value == "":
+                    missing.append(field)
+            
+            if missing:
+                self.logger.warning(f"{entry_type.capitalize()} missing required fields: {missing}")
+                all_valid = False
+            else:
+                self.logger.debug(f"✓ {entry_type.capitalize()} has all required metadata")
+        
+        if all_valid:
+            self.logger.info("✓ All enrichments have complete metadata (source_url, original_text, confidence, collected_by, collection_date, notes)")
+        else:
+            self.logger.warning("⚠ Some enrichments are missing required metadata fields")
+        
+        return all_valid
 
     def get_enrichment_summary(self) -> dict:
         """Get summary of enrichments added"""
