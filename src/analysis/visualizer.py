@@ -283,7 +283,7 @@ class DataVisualizer:
         save_path: Optional[Path] = None
     ):
         """
-        Plot usage trends over time
+        Plot usage trends over time with clear labels and annotations
 
         Args:
             save_path: Optional path to save figure
@@ -303,21 +303,101 @@ class DataVisualizer:
 
         fig = go.Figure()
 
-        for indicator in usage_trends["indicator_code"].unique():
+        # Create a mapping for better indicator names
+        indicator_names = {
+            "ACC_MM_ACCOUNT": "Mobile Money Accounts",
+            "USAGE_DIGITAL": "Digital Payment Usage",
+            "USAGE_P2P": "P2P Transfers",
+            "USAGE_TRANSACTIONS": "Transaction Volume"
+        }
+
+        # Color palette for different indicators
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+        
+        for idx, indicator in enumerate(usage_trends["indicator_code"].unique()):
             indicator_data = usage_trends[usage_trends["indicator_code"] == indicator]
+            display_name = indicator_names.get(indicator, indicator.replace("_", " ").title())
+            
             fig.add_trace(go.Scatter(
                 x=indicator_data["year"],
                 y=indicator_data["value_numeric"],
                 mode="lines+markers",
-                name=indicator
+                name=display_name,
+                line=dict(width=2.5),
+                marker=dict(size=8),
+                hovertemplate=f"<b>{display_name}</b><br>" +
+                             "Year: %{x}<br>" +
+                             "Value: %{y:.2f}%<br>" +
+                             "<extra></extra>"
             ))
 
+        # Add vertical lines for major events if available
+        try:
+            datasets = self.eda_analyzer.load_data()
+            events = datasets.get("unified_data", pd.DataFrame())
+            if not events.empty and "record_type" in events.columns:
+                event_data = events[events["record_type"] == "event"].copy()
+                if "event_date" in event_data.columns or "observation_date" in event_data.columns:
+                    date_col = "event_date" if "event_date" in event_data.columns else "observation_date"
+                    for _, event in event_data.iterrows():
+                        event_date = pd.to_datetime(event[date_col], errors="coerce")
+                        if pd.notna(event_date) and event_date.year >= usage_trends["year"].min():
+                            event_year = event_date.year
+                            event_name = event.get("description", event.get("category", "Event"))[:30]
+                            fig.add_vline(
+                                x=event_year,
+                                line_dash="dash",
+                                line_color="gray",
+                                opacity=0.5,
+                                annotation_text=event_name,
+                                annotation_position="top"
+                            )
+        except Exception as e:
+            self.logger.debug(f"Could not add event markers: {e}")
+
         fig.update_layout(
-            title="Usage Trends Over Time",
-            xaxis_title="Year",
-            yaxis_title="Value (%)",
+            title={
+                "text": "Digital Payment Usage Trends (2014-2024)",
+                "x": 0.5,
+                "xanchor": "center",
+                "font": {"size": 16, "family": "Arial, sans-serif"}
+            },
+            xaxis_title={
+                "text": "Year",
+                "font": {"size": 14, "family": "Arial, sans-serif"}
+            },
+            yaxis_title={
+                "text": "Percentage (%)",
+                "font": {"size": 14, "family": "Arial, sans-serif"}
+            },
             hovermode="x unified",
-            template="plotly_white"
+            template="plotly_white",
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1,
+                font={"size": 12}
+            ),
+            height=500,
+            margin=dict(l=80, r=20, t=80, b=60),
+            xaxis=dict(
+                title="Year",
+                showgrid=True,
+                gridcolor="lightgray",
+                dtick=1 if usage_trends["year"].max() - usage_trends["year"].min() < 10 else 2,
+                titlefont={"size": 14, "family": "Arial, sans-serif"},
+                tickfont={"size": 12}
+            ),
+            yaxis=dict(
+                title="Percentage (%)",
+                showgrid=True,
+                gridcolor="lightgray",
+                ticksuffix="%",
+                titlefont={"size": 14, "family": "Arial, sans-serif"},
+                tickfont={"size": 12}
+            )
         )
 
         if save_path:

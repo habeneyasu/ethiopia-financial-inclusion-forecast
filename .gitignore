@@ -176,6 +176,11 @@ dmypy.json
 # Pyre
 .pyre/
 
+# Scripts (utility scripts, not core code)
+scripts/
+generate_policy_report.py
+inspect_data_quality.py
+
 # Temporary files
 *.tmp
 *.temp
