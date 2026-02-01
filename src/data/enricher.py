@@ -135,6 +135,7 @@ class DataEnricher:
             "category": category,
             "pillar": "",  # Events should have empty pillar
             "event_date": event_date,
+            "observation_date": event_date,  # Also include observation_date for compatibility
             "source_name": source_name,
             "source_url": source_url,
             "confidence": confidence,
@@ -259,26 +260,35 @@ class DataEnricher:
         new_impact_links_df = pd.DataFrame(impact_links_new) if impact_links_new else pd.DataFrame()
 
         # Merge with existing data
-        if not main_data.empty and not new_observations_df.empty:
-            # Ensure columns match
-            all_cols = set(main_data.columns) | set(new_observations_df.columns)
-            for col in all_cols:
-                if col not in main_data.columns:
-                    main_data[col] = None
-                if col not in new_observations_df.columns:
-                    new_observations_df[col] = None
+        # Handle observations
+        if not new_observations_df.empty:
+            if not main_data.empty:
+                # Ensure columns match
+                all_cols = set(main_data.columns) | set(new_observations_df.columns)
+                for col in all_cols:
+                    if col not in main_data.columns:
+                        main_data[col] = None
+                    if col not in new_observations_df.columns:
+                        new_observations_df[col] = None
+                main_data = pd.concat([main_data, new_observations_df], ignore_index=True)
+            else:
+                # If main_data is empty, use new observations as starting point
+                main_data = new_observations_df.copy()
 
-            main_data = pd.concat([main_data, new_observations_df], ignore_index=True)
-
-        if not main_data.empty and not new_events_df.empty:
-            all_cols = set(main_data.columns) | set(new_events_df.columns)
-            for col in all_cols:
-                if col not in main_data.columns:
-                    main_data[col] = None
-                if col not in new_events_df.columns:
-                    new_events_df[col] = None
-
-            main_data = pd.concat([main_data, new_events_df], ignore_index=True)
+        # Handle events
+        if not new_events_df.empty:
+            if not main_data.empty:
+                # Ensure columns match
+                all_cols = set(main_data.columns) | set(new_events_df.columns)
+                for col in all_cols:
+                    if col not in main_data.columns:
+                        main_data[col] = None
+                    if col not in new_events_df.columns:
+                        new_events_df[col] = None
+                main_data = pd.concat([main_data, new_events_df], ignore_index=True)
+            else:
+                # If main_data is empty, use new events as starting point
+                main_data = new_events_df.copy()
 
         if not impact_links.empty and not new_impact_links_df.empty:
             all_cols = set(impact_links.columns) | set(new_impact_links_df.columns)

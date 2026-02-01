@@ -533,10 +533,11 @@ Ethiopia's financial inclusion journey shows both progress and challenges. The d
 
 def main():
     """Generate policy report"""
+    logger = get_logger(__name__)
     generator = PolicyReportGenerator()
     report = generator.generate_report()
-    print("Policy report generated successfully!")
-    print(f"Report saved to: {config.reports_dir / 'policy_report.md'}")
+    logger.info("Policy report generated successfully!")
+    logger.info(f"Report saved to: {config.reports_dir / 'policy_report.md'}")
 
 
 if __name__ == "__main__":
